@@ -1,0 +1,29 @@
+[pipeline]
+combiner = "any"            # any | corroborate | weighted
+register_after_check = true
+
+[source]
+type = "local"              # local | s3 (s3 added in Phase 6)
+path = "./data/new"
+
+[store]
+type = "sqlite"             # sqlite | postgres (postgres added in Phase 6)
+path = "./dedupe.db"
+
+[detectors.exact_sha256]
+enabled = true
+
+[detectors.frame_phash]
+enabled = true
+fps = 1
+radius = 3
+num_chunks = 4
+offset_bin_s = 2
+flag_threshold = 0.80
+review_threshold = 0.40
+
+[detectors.audio_chromaprint]
+enabled = false             # flip to true only after Phase 4 evaluation
+ber_threshold = 0.35
+flag_threshold = 0.80
+review_threshold = 0.50

@@ -1,0 +1,5 @@
+# ClipGuard Production Dependencies (pinned)
+numpy==2.5.3
+boto3==1.43.106
+botocore==1.43.106
+psycopg2-binary==2.9.12

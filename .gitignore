@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Unit test / coverage / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data & databases (per section 9)
+data/
+eval_results/
+pilot_results/
+*.db
+*.sqlite
+dedupe.db
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Local config overrides
+dedupe.toml

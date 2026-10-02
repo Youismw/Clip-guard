@@ -1,0 +1,17 @@
+[eval]
+originals_dir = "./data/originals"
+output_dir = "./eval_results"
+distinct_dir = "./data/distinct"
+# known_pairs_csv = "./data/known_pairs.csv"
+
+edits = [
+  "exact_copy",
+  "trim_head_1s",
+  "trim_tail_1s",
+  "reencode_h264_q1",
+  "reencode_h264_q2",
+  "resize_720p",
+  "strip_metadata",
+  "color_adjust",
+  "hflip"
+]
