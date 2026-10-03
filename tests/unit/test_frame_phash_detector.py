@@ -154,3 +154,52 @@ def test_junk_hash_filtering(tmp_path: Path) -> None:
     assert len(matches) == 0
 
     store.close()
+
+
+def test_speed_invariant_detection(tmp_path: Path) -> None:
+    """Detector successfully identifies clips with arbitrary playback speedups (e.g. 1.5x, 1.7x)."""
+    db_file = tmp_path / "speed_test.db"
+    store = SqliteStore(db_file)
+
+    detector = FramePhashDetector(
+        params={
+            "fps": 1.0,
+            "radius": 3,
+            "flag_threshold": 0.80,
+            "review_threshold": 0.40,
+            "review_min_seconds": 4.0,
+            "speed_detection": True,
+        },
+        store=store,
+    )
+
+    # Distinct 64-bit hashes with large Hamming distance between different frames
+    ref_hashes = [
+        ((i * 1337 + 0x123456789ABCDEF0) * 0x5BD1E9955BD1E995) & 0xFFFFFFFFFFFFFFFF
+        for i in range(40)
+    ]
+    db_frames = [(i * 1000, ref_hashes[i]) for i in range(40)]
+
+    orig_clip = ClipRef("orig_speed", "file:///orig.mp4", Path("orig.mp4"), "approved")
+    store.clips.add(orig_clip)
+    detector.register(orig_clip.clip_id, db_frames)
+
+    # Query video is sped up by ~1.5x (e.g. query at t_q = 0, 1, 2... matches reference at 1.5 * t_q)
+    query_frames = [(j * 1000, ref_hashes[int(round(1.5 * j))]) for j in range(20)]
+    query_fp = FrameFingerprint(
+        normal_frames=query_frames,
+        flipped_frames=[],
+        valid_frames_count=20,
+        duration_s=20.0,
+    )
+
+    matches = detector.search(query_fp, exclude_clip_id="query_sped_up")
+    assert len(matches) == 1
+    m = matches[0]
+    assert m.matched_clip_id == "orig_speed"
+    assert m.confidence >= 0.80
+    assert 1.4 <= m.evidence["speed_ratio"] <= 1.6
+    assert not m.evidence["flipped"]
+
+    store.close()
+

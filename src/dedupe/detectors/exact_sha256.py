@@ -30,7 +30,14 @@ class ExactSha256Detector(Detector):
         return []
 
     def extract(self, clip: ClipRef) -> str:
-        """Stream file in 1 MiB chunks and return hex SHA-256."""
+        """Stream file in 1 MiB chunks and return hex SHA-256 (reuses clip.clip_id if already computed)."""
+        if (
+            isinstance(clip.clip_id, str)
+            and len(clip.clip_id) == 64
+            and all(c in "0123456789abcdefABCDEF" for c in clip.clip_id)
+        ):
+            return clip.clip_id.lower()
+
         h = hashlib.sha256()
         with clip.local_path.open("rb") as f:
             while True:

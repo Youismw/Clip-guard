@@ -62,12 +62,13 @@ class LocalSource(ClipSource):
         self.status = status
         self.recursive = recursive
 
-    def iter_clips(self) -> Iterator[ClipRef]:
+    def iter_paths(self) -> Iterator[Path]:
+        """Iterate over candidate video file paths on local disk without hashing."""
         if not self.root.exists():
             return
 
         if self.root.is_file():
-            yield clip_from_path(self.root, status=self.status)
+            yield self.root
             return
 
         pattern = "**/*" if self.recursive else "*"
@@ -75,7 +76,11 @@ class LocalSource(ClipSource):
             if item.is_file() and not item.name.startswith("."):
                 ext = item.suffix.lower()
                 if ext in KNOWN_VIDEO_EXTENSIONS or ext == "":
-                    yield clip_from_path(item, status=self.status)
+                    yield item
+
+    def iter_clips(self) -> Iterator[ClipRef]:
+        for path in self.iter_paths():
+            yield clip_from_path(path, status=self.status)
 
     @contextmanager
     def materialize(self, uri: str) -> Iterator[Path]:
